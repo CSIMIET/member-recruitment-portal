@@ -53,8 +53,9 @@ export default function MembershipForm() {
     contributionPlan: ''
   });
 
-  const [showToast, setShowToast] = useState(false);
+  const [showToast] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const juniorCoreTeamDomains = [
     'Technical Team',
@@ -91,7 +92,7 @@ export default function MembershipForm() {
     setIsSubmitting(true);
 
     // Basic validation - build required fields dynamically
-    let requiredFields = ['fullName', 'rollNumber', 'classSection', 'branch', 'email', 'yearOfStudy', 'selectedRole', 'motivationAndGrowth', 'expectationsFromCSI', 'excitingActivityAndWhy', 'priorExperience', 'skills', 'timeCommitment', 'teamWork'];
+    const requiredFields = ['fullName', 'rollNumber', 'classSection', 'branch', 'email', 'yearOfStudy', 'selectedRole', 'motivationAndGrowth', 'expectationsFromCSI', 'excitingActivityAndWhy', 'priorExperience', 'skills', 'timeCommitment', 'teamWork'];
     
     // Add team level for 3rd year students
     if (formData.yearOfStudy === '3rd Year') {
@@ -118,7 +119,7 @@ export default function MembershipForm() {
     }
 
     try {
-      const scriptURL = 'https://script.google.com/macros/s/AKfycbyNq9G5mzLMIhDX12dVPs42tIJTzKX6c35zhOYEqILGLrmdAnkMhhWmX7yY4AvhxmXTxQ/exec';
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbzY7c6ULanoXBLAV3kc1rTIiSRdCkvsNvr1kq7MibLxdjoWw_Ap-MAD5ffZv42EaPrQ-w/exec';
       
       const formDataToSend = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
@@ -131,7 +132,8 @@ export default function MembershipForm() {
       });
 
       if (response.ok) {
-        setShowToast(true);
+        // Show success modal instead of toast
+        setShowSuccessModal(true);
         // Reset form
         setFormData({
           fullName: '',
@@ -153,7 +155,6 @@ export default function MembershipForm() {
           mentoringExperience: '',
           contributionPlan: ''
         });
-        setTimeout(() => setShowToast(false), 5000);
       } else {
         throw new Error('Submission failed');
       }
@@ -202,6 +203,53 @@ export default function MembershipForm() {
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
             Successfully registered!
+          </div>
+        </div>
+      )}
+      
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowSuccessModal(false)}></div>
+          <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full mx-4 relative z-10 transform transition-all">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
+                <svg className="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h3>
+              <p className="text-gray-600 mb-6">Thank you for applying to CSI MIET. Your application has been successfully submitted and is under review.</p>
+              <div className="bg-blue-50 p-4 rounded-lg mb-6 text-left">
+                <h4 className="font-medium text-blue-800 mb-2">What&apos;s Next?</h4>
+                <ul className="text-sm text-gray-700 space-y-2">
+                  <li className="flex items-start">
+                    <svg className="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Our team will review your application
+                  </li>
+                  <li className="flex items-start">
+                    <svg className="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Shortlisted candidates will be contacted for the next steps
+                  </li>
+                  <li className="flex items-start">
+                    <svg className="h-5 w-5 text-blue-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Keep an eye on your email for updates
+                  </li>
+                </ul>
+              </div>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-blue-200"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -424,7 +472,7 @@ export default function MembershipForm() {
 
                 <div>
                   <label htmlFor="excitingActivityAndWhy" className="block text-sm font-medium text-gray-700 mb-1">
-                    Among CSI MIET's activities (Workshops, Events, Hackathons, Content, Design, Management), which excites you the most and why? <span className="text-red-500">*</span>
+                    Among CSI MIET&apos;s activities (Workshops, Events, Hackathons, Content, Design, Management), which excites you the most and why? <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     id="excitingActivityAndWhy"
