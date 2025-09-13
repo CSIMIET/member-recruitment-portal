@@ -5,12 +5,6 @@ interface RateLimitEntry {
   blockExpiry?: number;
 }
 
-interface RateLimitConfig {
-  windowMs: number;
-  maxRequests: number;
-  blockDuration: number;
-  message: string;
-}
 
 class RateLimiter {
   private requests: Map<string, RateLimitEntry> = new Map();

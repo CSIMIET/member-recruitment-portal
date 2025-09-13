@@ -62,7 +62,7 @@ export default function StoryModeForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [, setCaptchaToken] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [stepDirection, setStepDirection] = useState<'forward' | 'backward'>('forward');
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -84,7 +84,7 @@ export default function StoryModeForm() {
 
     // Wait for reCAPTCHA to load
     const loadRecaptcha = () => {
-      if (typeof window !== 'undefined' && (window as any).grecaptcha?.enterprise) {
+      if (typeof window !== 'undefined' && (window as Window & { grecaptcha?: { enterprise?: unknown } }).grecaptcha?.enterprise) {
         return;
       }
       setTimeout(loadRecaptcha, 100);
@@ -127,7 +127,7 @@ export default function StoryModeForm() {
     {
       id: 'welcome',
       title: 'Welcome to Your Journey',
-      narrative: "Welcome, future innovator! 🚀 You're about to embark on an exciting journey to join CSI MIET, where technology meets creativity and dreams turn into reality. Let's start by getting to know who you are...",
+      narrative: "Welcome, future innovator! 🚀 You&apos;re about to embark on an exciting journey to join CSI MIET, where technology meets creativity and dreams turn into reality. Let&apos;s start by getting to know who you are...",
       fields: [
         { name: 'fullName', type: 'text', placeholder: 'Enter your full name', required: true }
       ]
@@ -258,12 +258,12 @@ export default function StoryModeForm() {
     {
       id: 'projects',
       title: 'Your Creative Journey',
-      narrative: '🛠️ Show us what you\'ve built! Even the smallest project shows your passion for creating. Share any project that makes you proud.',
+      narrative: '🛠️ Show us what you&apos;ve built! Even the smallest project shows your passion for creating. Share any project that makes you proud.',
       fields: [
         { 
           name: 'personalProject', 
           type: 'textarea', 
-          placeholder: 'Tell us about any project you\'ve worked on...',
+          placeholder: 'Tell us about any project you&apos;ve worked on...',
           required: true 
         }
       ],
@@ -497,7 +497,14 @@ export default function StoryModeForm() {
       const waitForRecaptcha = (): Promise<void> => {
         return new Promise((resolve, reject) => {
           const checkRecaptcha = () => {
-            if (typeof window !== 'undefined' && (window as any).grecaptcha?.enterprise?.ready) {
+            if (typeof window !== 'undefined' && (window as Window & { 
+              grecaptcha?: { 
+                enterprise?: { 
+                  ready?: (callback: () => void) => void;
+                  execute?: (siteKey: string, options: { action: string }) => Promise<string>;
+                }
+              } 
+            }).grecaptcha?.enterprise?.ready) {
               resolve();
             } else {
               setTimeout(checkRecaptcha, 100);
@@ -515,7 +522,16 @@ export default function StoryModeForm() {
       await waitForRecaptcha();
 
       await new Promise<void>((resolve, reject) => {
-        (window as any).grecaptcha.enterprise.ready(async () => {
+        const windowWithRecaptcha = window as Window & { 
+          grecaptcha?: { 
+            enterprise?: { 
+              ready?: (callback: () => void) => void;
+              execute?: (siteKey: string, options: { action: string }) => Promise<string>;
+            }
+          } 
+        };
+        
+        windowWithRecaptcha.grecaptcha?.enterprise?.ready?.(async () => {
           try {
             console.log('Executing reCAPTCHA...');
             const siteKey = process.env.RECAPTCHA_SITE_KEY;
@@ -523,7 +539,7 @@ export default function StoryModeForm() {
               reject(new Error('reCAPTCHA site key is not configured'));
               return;
             }
-            token = await (window as any).grecaptcha.enterprise.execute(siteKey, {action: 'LOGIN'});
+            token = await windowWithRecaptcha.grecaptcha?.enterprise?.execute?.(siteKey, {action: 'LOGIN'}) || '';
             console.log('reCAPTCHA token received:', token ? 'valid' : 'null/empty');
             if (!token) {
               reject(new Error('Failed to get reCAPTCHA token - received null or empty token'));
