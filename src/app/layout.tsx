@@ -22,8 +22,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY;
+  
   return (
     <html lang="en">
+      <head>
+        {recaptchaSiteKey && (
+          <script src={`https://www.google.com/recaptcha/enterprise.js?render=${recaptchaSiteKey}`}></script>
+        )}
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
