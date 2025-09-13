@@ -60,17 +60,6 @@ export default function MembershipForm() {
   const [emailError, setEmailError] = useState<string | null>(null);
 
 
-  // Load reCAPTCHA script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/enterprise.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`;
-    script.async = true;
-    document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
 
   const juniorCoreTeamDomains = [
     'Technical Team',
@@ -159,66 +148,6 @@ export default function MembershipForm() {
 
 
     try {
-      // Execute reCAPTCHA Enterprise verification
-      let token = '';
-      
-      // Wait for reCAPTCHA to be fully loaded
-      const waitForRecaptcha = (): Promise<void> => {
-        return new Promise((resolve, reject) => {
-          const checkRecaptcha = () => {
-            if (typeof window !== 'undefined' && (window as Window & { 
-              grecaptcha?: { 
-                enterprise?: { 
-                  ready?: (callback: () => void) => void;
-                  execute?: (siteKey: string, options: { action: string }) => Promise<string>;
-                }
-              } 
-            }).grecaptcha?.enterprise?.ready) {
-              resolve();
-            } else {
-              setTimeout(checkRecaptcha, 100);
-            }
-          };
-          checkRecaptcha();
-          
-          // Timeout after 10 seconds
-          setTimeout(() => {
-            reject(new Error('reCAPTCHA failed to load'));
-          }, 10000);
-        });
-      };
-
-      await waitForRecaptcha();
-
-      await new Promise<void>((resolve, reject) => {
-        const windowWithRecaptcha = window as Window & { 
-          grecaptcha?: { 
-            enterprise?: { 
-              ready?: (callback: () => void) => void;
-              execute?: (siteKey: string, options: { action: string }) => Promise<string>;
-            }
-          } 
-        };
-        
-        windowWithRecaptcha.grecaptcha?.enterprise?.ready?.(async () => {
-          try {
-            const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-            if (!siteKey) {
-              reject(new Error('reCAPTCHA site key is not configured'));
-              return;
-            }
-            token = await windowWithRecaptcha.grecaptcha?.enterprise?.execute?.(siteKey, {action: 'LOGIN'}) || '';
-            if (!token) {
-              reject(new Error('Failed to get reCAPTCHA token'));
-              return;
-            }
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        });
-      });
-
       // Send to secure API endpoint
       const response = await fetch('/api/submit', {
         method: 'POST',
@@ -227,7 +156,6 @@ export default function MembershipForm() {
         },
         body: JSON.stringify({
           ...formData,
-          captchaToken: token,
           _honeypot: '' // Honeypot field
         })
       });
@@ -273,17 +201,7 @@ export default function MembershipForm() {
         }
       }
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes('reCAPTCHA failed to load')) {
-          setSubmitError('reCAPTCHA is taking longer to load than expected. Please refresh the page and try again.');
-        } else if (error.message.includes('Failed to get reCAPTCHA token')) {
-          setSubmitError('reCAPTCHA verification failed. Please refresh the page and try again.');
-        } else {
-          setSubmitError('reCAPTCHA verification failed. Please try again.');
-        }
-      } else {
-        setSubmitError('An unexpected error occurred. Please try again.');
-      }
+      setSubmitError('An unexpected error occurred. Please try again.');
     }
 
     setIsSubmitting(false);

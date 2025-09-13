@@ -33,74 +33,6 @@ function getClientIP(request: NextRequest): string {
   return 'unknown';
 }
 
-async function createAssessment(token: string, recaptchaAction: string): Promise<number | null> {
-  const { RecaptchaEnterpriseServiceClient } = await import('@google-cloud/recaptcha-enterprise');
-  
-  // In development mode, allow submissions without verification
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Development mode: Skipping reCAPTCHA Enterprise verification');
-    return 0.9;
-  }
-
-  const projectID = process.env.GOOGLE_CLOUD_PROJECT_ID;
-  const recaptchaKey = process.env.RECAPTCHA_SITE_KEY;
-
-  if (!projectID) {
-    console.error('GOOGLE_CLOUD_PROJECT_ID environment variable is not set');
-    return null;
-  }
-
-  if (!recaptchaKey) {
-    console.error('RECAPTCHA_SITE_KEY environment variable is not set');
-    return null;
-  }
-
-  try {
-    // Create the reCAPTCHA client
-    const client = new RecaptchaEnterpriseServiceClient();
-    const projectPath = client.projectPath(projectID);
-
-    // Build the assessment request
-    const request = {
-      assessment: {
-        event: {
-          token: token,
-          siteKey: recaptchaKey,
-        },
-      },
-      parent: projectPath,
-    };
-
-    const [response] = await client.createAssessment(request);
-
-    // Check if the token is valid
-    if (!response.tokenProperties?.valid) {
-      console.log(`The CreateAssessment call failed because the token was: ${response.tokenProperties?.invalidReason}`);
-      return null;
-    }
-
-    // Check if the expected action was executed
-    if (response.tokenProperties?.action === recaptchaAction) {
-      // Get the risk score
-      const score = response.riskAnalysis?.score || 0;
-      console.log(`The reCAPTCHA score is: ${score}`);
-      
-      if (response.riskAnalysis?.reasons) {
-        response.riskAnalysis.reasons.forEach((reason) => {
-          console.log(`reCAPTCHA reason: ${reason}`);
-        });
-      }
-
-      return score;
-    } else {
-      console.log("The action attribute in your reCAPTCHA tag does not match the action you are expecting to score");
-      return null;
-    }
-  } catch (error) {
-    console.error('reCAPTCHA Enterprise verification error:', error);
-    return null;
-  }
-}
 
 function validateFormData(data: Record<string, unknown>): { valid: boolean; errors: string[]; sanitizedData?: FormData } {
   const errors: string[] = [];
@@ -272,23 +204,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const captchaToken = body.captchaToken;
-    if (!captchaToken || typeof captchaToken !== 'string') {
-      SecurityMonitor.trackSuspiciousActivity(ip, 'missing_captcha');
-      return NextResponse.json(
-        { error: 'CAPTCHA verification required', code: 'CAPTCHA_REQUIRED' },
-        { status: 400 }
-      );
-    }
-
-    const reCaptchaScore = await createAssessment(captchaToken, 'LOGIN');
-    if (reCaptchaScore === null || reCaptchaScore < 0.5) {
-      SecurityMonitor.trackSuspiciousActivity(ip, 'invalid_captcha');
-      return NextResponse.json(
-        { error: 'reCAPTCHA verification failed', code: 'CAPTCHA_INVALID' },
-        { status: 400 }
-      );
-    }
 
     const scriptURL = process.env.GOOGLE_SHEETS_SCRIPT_URL;
     
