@@ -111,7 +111,7 @@ function validateFormData(data: Record<string, unknown>): { valid: boolean; erro
     { key: 'rollNumber', type: 'number' as const, maxLength: 15 },
     { key: 'classSection', type: 'text' as const, maxLength: 50 },
     { key: 'branch', type: 'text' as const, maxLength: 100 },
-    { key: 'email', type: 'email' as const, maxLength: 100 },
+    { key: 'email', type: 'text' as const, maxLength: 100 },
     { key: 'yearOfStudy', type: 'text' as const, maxLength: 20 },
     { key: 'selectedRole', type: 'text' as const, maxLength: 100 },
     { key: 'motivationAndGrowth', type: 'text' as const, maxLength: 2000 },
@@ -197,7 +197,7 @@ function validateFormData(data: Record<string, unknown>): { valid: boolean; erro
     errors.push('Invalid year of study');
   }
 
-  const validTimeCommitments = ['<2 hrs', '2–4 hrs', '5–7 hrs', '7+ hrs'];
+  const validTimeCommitments = ['Less than 2 hours', '2-4 hours', '5-7 hours', '7+ hours'];
   if (!validTimeCommitments.includes(sanitizedData.timeCommitment as string)) {
     errors.push('Invalid time commitment');
   }
