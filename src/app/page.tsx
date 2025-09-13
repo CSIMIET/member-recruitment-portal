@@ -737,7 +737,7 @@ export default function StoryModeForm() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Application Already Submitted!</h2>
           <p className="text-gray-600 mb-6">You have already submitted your application to CSI MIET. Only one submission per user is allowed.</p>
           <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl text-left">
-            <h4 className="font-bold text-blue-800 mb-2">What's Next?</h4>
+            <h4 className="font-bold text-blue-800 mb-2">What&apos;s Next?</h4>
             <div className="space-y-2 text-sm text-gray-700">
               <div className="flex items-center">
                 <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
@@ -745,7 +745,7 @@ export default function StoryModeForm() {
               </div>
               <div className="flex items-center">
                 <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                You'll be contacted if selected for an interview
+                You&apos;ll be contacted if selected for an interview
               </div>
               <div className="flex items-center">
                 <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
