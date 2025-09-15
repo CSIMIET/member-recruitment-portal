@@ -59,6 +59,9 @@ export default function MembershipForm() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
 
+  // Local storage key for form data
+  const FORM_STORAGE_KEY = 'csi-form-data';
+
 
 
   const juniorCoreTeamDomains = [
@@ -77,6 +80,25 @@ export default function MembershipForm() {
     'Social Media Handler',
     'Secretary'
   ];
+
+  // Load form data from localStorage on component mount
+  useEffect(() => {
+    const savedData = localStorage.getItem(FORM_STORAGE_KEY);
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setFormData(parsedData);
+      } catch (error) {
+        console.error('Error loading saved form data:', error);
+        localStorage.removeItem(FORM_STORAGE_KEY);
+      }
+    }
+  }, []);
+
+  // Save form data to localStorage whenever formData changes
+  useEffect(() => {
+    localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formData));
+  }, [formData]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -163,6 +185,9 @@ export default function MembershipForm() {
       const responseData = await response.json();
       
       if (response.ok) {
+        // Clear localStorage on successful submission
+        localStorage.removeItem(FORM_STORAGE_KEY);
+        
         // Show success modal
         setShowSuccessModal(true);
         // Reset form

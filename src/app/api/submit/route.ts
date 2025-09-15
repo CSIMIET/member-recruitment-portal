@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateInput, detectSQLInjection, detectXSS, SecurityMonitor } from '../../../middleware/security';
+import { validateInput, detectXSS, SecurityMonitor } from '../../../middleware/security';
 
 interface FormData {
   fullName: string;
@@ -85,10 +85,6 @@ function validateFormData(data: Record<string, unknown>): { valid: boolean; erro
       continue;
     }
 
-    if (detectSQLInjection(stringValue)) {
-      errors.push(`${field.key} contains potentially malicious content`);
-      continue;
-    }
 
     if (detectXSS(stringValue)) {
       errors.push(`${field.key} contains potentially harmful scripts`);
@@ -112,7 +108,7 @@ function validateFormData(data: Record<string, unknown>): { valid: boolean; erro
         continue;
       }
 
-      if (detectSQLInjection(value) || detectXSS(value)) {
+      if (detectXSS(value)) {
         errors.push(`${field.key} contains potentially malicious content`);
         continue;
       }
